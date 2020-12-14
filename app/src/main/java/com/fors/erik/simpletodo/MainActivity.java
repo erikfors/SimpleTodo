@@ -17,15 +17,18 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     public static final String KEY_ITEM_TEXT = "item_text";
+    public static final String KEY_DATE_TEXT = "date_text";
     public static final String KEY_ITEM_POSITION = "item_position";
     public static final int EDIT_TEXT_CODE = 20;
 
-    List<String> itemsList;
+    List<ListItem> itemsList;
 
     Button btnAdd;
     EditText etxtItem;
@@ -38,14 +41,17 @@ public class MainActivity extends AppCompatActivity {
         if(resultCode == RESULT_OK && requestCode == EDIT_TEXT_CODE){
             //Retrieve updated tes value
             String editText = data.getStringExtra(KEY_ITEM_TEXT);
+            String dateText = data.getStringExtra(KEY_DATE_TEXT);
             //extract position of edited item
             int position = data.getExtras().getInt(KEY_ITEM_POSITION);
 
+            ListItem editItem = new ListItem(editText,dateText);
+
             //update the model at the right position with new item text
-            itemsList.set(position,editText);
+            itemsList.set(position,editItem);
             //notify the adapter
             ItemsAdapter.notifyItemChanged(position);
-            //persist the chanes
+            //persist the changes
             saveItems();
             Toast.makeText(getApplicationContext(),"Item updated successfully!", Toast.LENGTH_SHORT).show();
         }
@@ -63,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         etxtItem = findViewById(R.id.etxtEditItem);
         rvItems = findViewById(R.id.rvItems);
 
-   loadItems();
+        loadItems();
 
       ItemsAdapter.OnLongClickListener onLongClickListener =  new ItemsAdapter.OnLongClickListener(){
 
@@ -85,14 +91,15 @@ public class MainActivity extends AppCompatActivity {
               //create new activity
               Intent i = new Intent(MainActivity.this, EditActivity.class);
               //pass the data being edited
-              i.putExtra(KEY_ITEM_TEXT,itemsList.get(position));
+              i.putExtra(KEY_ITEM_TEXT,itemsList.get(position).getItem());
+              i.putExtra(KEY_DATE_TEXT,itemsList.get(position).getDate());
               i.putExtra(KEY_ITEM_POSITION,position);
               //display the activity
               startActivityForResult(i,EDIT_TEXT_CODE);
           }
       };
 
-       ItemsAdapter = new ItemsAdapter(itemsList, onLongClickListener,onClickListener);
+        ItemsAdapter = new ItemsAdapter(itemsList, onLongClickListener,onClickListener);
         rvItems.setAdapter(ItemsAdapter);
         rvItems.setLayoutManager(new LinearLayoutManager(this));
 
@@ -100,8 +107,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String todoString = etxtItem.getText().toString();
+                //check if string is empty
+                if(todoString.isEmpty()){
+                    Toast.makeText(getApplicationContext(),"Item can't be empty!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                //getting current date
+                Date currentTime = Calendar.getInstance().getTime();
+                String date = currentTime.toString();
+                ListItem todoListItem = new ListItem(todoString,date);
+
                 //add item to list
-                itemsList.add(todoString);
+                itemsList.add(todoListItem);
                 //notify adapter
                 ItemsAdapter.notifyItemInserted(itemsList.size() - 1);
                 etxtItem.setText("");
@@ -115,22 +132,41 @@ public class MainActivity extends AppCompatActivity {
     private File getDataFile(){
         return new File(getFilesDir(), "data.txt");
     }
+    private File getDateFile(){
+        return new File(getFilesDir(), "date.txt");
+    }
 
     //this function will load items by reading every line of the data
     private void loadItems(){
+        List<String> itemsString ;
+        List<String> dateString ;
         try {
+            itemsList = new ArrayList<>();
+            itemsString = new ArrayList<>(org.apache.commons.io.FileUtils.readLines(getDataFile(), Charset.defaultCharset()));
+            dateString = new ArrayList<>(org.apache.commons.io.FileUtils.readLines(getDateFile(), Charset.defaultCharset()));
 
-            itemsList = new ArrayList<>(org.apache.commons.io.FileUtils.readLines(getDataFile(), Charset.defaultCharset()));
+            for (int i = 0; i < itemsString.size(); i++){
+                ListItem listItem = new ListItem(itemsString.get(i),dateString.get(i));
+                itemsList.add(listItem);
+            }
         }
         catch (IOException e){
             Log.e("MainActivity", "Error reading items", e);
             itemsList = new ArrayList<>();
         }
     }
+
     // this function saves items by writing them into the data file
     private void saveItems(){
+        List<String> itemsString = new ArrayList<>();
+        List<String> dateString = new ArrayList<>();
         try {
-            org.apache.commons.io.FileUtils.writeLines(getDataFile(), itemsList);
+            for(int i = 0; i < itemsList.size(); i++){
+                itemsString.add(i,itemsList.get(i).getItem());
+                dateString.add(i,itemsList.get(i).getDate());
+            }
+            org.apache.commons.io.FileUtils.writeLines(getDataFile(), itemsString);
+            org.apache.commons.io.FileUtils.writeLines(getDateFile(), dateString);
         }
         catch (IOException e){
             Log.e("MainActivity", "Error writing items", e);

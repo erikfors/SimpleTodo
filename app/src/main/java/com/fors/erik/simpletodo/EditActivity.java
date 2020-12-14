@@ -17,12 +17,15 @@ public class EditActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit);
 
+       final String date;
+
         etItem = findViewById(R.id.etItemEdit);
         btnSave = findViewById(R.id.btnSave);
 
         getSupportActionBar().setTitle("Edit Item");
 
         etItem.setText(getIntent().getStringExtra(MainActivity.KEY_ITEM_TEXT));
+        date = getIntent().getStringExtra(MainActivity.KEY_DATE_TEXT);
 
         //when the user is done editing, they click save
         btnSave.setOnClickListener(new View.OnClickListener() {
@@ -32,6 +35,7 @@ public class EditActivity extends AppCompatActivity {
                 Intent intent = new Intent();
                 //pass the result of the intent
                 intent.putExtra(MainActivity.KEY_ITEM_TEXT,etItem.getText().toString());
+                intent.putExtra(MainActivity.KEY_DATE_TEXT,date);
                 intent.putExtra(MainActivity.KEY_ITEM_POSITION, getIntent().getExtras().getInt(MainActivity.KEY_ITEM_POSITION));
                 //set result of the intent
                 setResult(RESULT_OK,intent);

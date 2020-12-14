@@ -19,5 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/etItemEdit"
         android:layout_alignParentEnd="true"
+        android:background="@drawable/ripple_effect"
+        android:textColor="@android:color/white"
         android:text="Save" />
 </RelativeLayout>
