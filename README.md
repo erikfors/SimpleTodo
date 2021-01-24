@@ -32,8 +32,7 @@ Here's a walkthrough of implemented user stories:
 
 <img src='walkthrough.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
 
-GIF created with [GIF Maker-Editor](http://www.cockos.com/licecap/).
-
+GIF created with [LiceCap](http://www.cockos.com/licecap/).
 ## Notes
 
 Describe any challenges encountered while building the app.
